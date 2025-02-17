@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP Car Control</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .ip-input {
+      margin-bottom: 20px;
+    }
+    .ip-input input {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 200px;
+    }
+    .button-group {
+      margin-bottom: 20px;
+    }
+    .button-group button,
+    .custom-command button,
+    .hold-command button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    .button-group button:hover,
+    .custom-command button:hover,
+    .hold-command button:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+    .button-group button:active,
+    .custom-command button:active,
+    .hold-command button:active {
+      transform: scale(0.95);
+    }
+    .custom-command,
+    .hold-command {
+      margin-top: 20px;
+    }
+    .custom-command select,
+    .custom-command input,
+    .hold-command input {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .custom-command button {
+      background-color: #28a745;
+    }
+    .custom-command button:hover {
+      background-color: #218838;
+    }
+    .hold-command button {
+      background-color: #dc3545;
+    }
+    .hold-command button:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <h1>ESP Car Control</h1>
+  <div class="container">
+    <!-- IP Address Input -->
+    <div class="ip-input">
+      <label for="ip-address">ESP Car IP Address:</label>
+      <input type="text" id="ip-address" placeholder="Enter IP Address">
+    </div>
+
+    <!-- Button Group for Common Commands -->
+    <div class="button-group">
+      <button onclick="sendCommand('forward', 255, 3)">Move Forward (3s)</button>
+      <button onclick="sendCommand('backward', 255, -1)">Move Backward (Indefinitely)</button>
+      <button onclick="sendCommand('rotateclockwise', 255, 2)">Rotate Clockwise (2s)</button>
+      <button onclick="sendCommand('turn45degclockwise')">Turn 45° Clockwise</button>
+      <button onclick="sendCommand('turn45deganticlockwise')">Turn 45° Anticlockwise</button>
+      <button onclick="sendCommand('stop')">Stop</button>
+    </div>
+
+    <!-- Custom Command Section -->
+    <div class="custom-command">
+      <h2>Custom Command</h2>
+      <select id="command">
+        <option value="forward">Forward</option>
+        <option value="backward">Backward</option>
+        <option value="rotateclockwise">Rotate Clockwise</option>
+        <option value="turn45degclockwise">Turn 45° Clockwise</option>
+        <option value="turn45deganticlockwise">Turn 45° Anticlockwise</option>
+        <option value="stop">Stop</option>
+        <!-- <option value="AutonmousMode">Autonomous Mode</option> -->
+      </select>
+      <input type="number" id="speed" placeholder="Speed (0-255)" min="0" max="255" value="255">
+      <input type="number" id="time" placeholder="Time (seconds)" min="-1" value="-1">
+      <button onclick="sendCustomCommand()">Send Custom Command</button>
+    </div>
+
+    <!-- Hold to Send Command Section -->
+    <div class="hold-command">
+      <h2>Hold to Send Command</h2>
+      <button id="hold-button">Activate custom command while holding button</button>
+    </div>
+  </div>
+
+  <script>
+    // Function to send a command to the ESP car
+    function sendCommand(command, speed = 255, time = -1) {
+      const ipAddress = document.getElementById('ip-address').value;
+      if (!ipAddress) {
+        alert("Please enter the ESP car's IP address.");
+        return;
+      }
+
+      const url = `http://${ipAddress}/${command}/${speed}/${time}`;
+      fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          console.log(`Command sent: ${url}`);
+          console.log(`Response: ${data}`);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+    // Function to send a custom command
+    function sendCustomCommand() {
+      const command = document.getElementById('command').value;
+      const speed = document.getElementById('speed').value;
+      const time = document.getElementById('time').value;
+      sendCommand(command, speed, time);
+    }
+
+    // Hold to Send Command functionality
+    const holdButton = document.getElementById('hold-button');
+
+    holdButton.addEventListener('mousedown', () => {
+      const command = document.getElementById('command').value;
+      const speed = document.getElementById('speed').value;
+      sendCommand(command, speed, -1); // Send command indefinitely
+    });
+
+    holdButton.addEventListener('mouseup', () => {
+      sendCommand('stop'); // Send stop command when button is released
+    });
+
+    holdButton.addEventListener('mouseleave', () => {
+      sendCommand('stop'); // Send stop command if mouse leaves the button
+    });
+  </script>
+</body>
+</html>
