@@ -162,19 +162,31 @@
     // Hold to Send Command functionality
     const holdButton = document.getElementById('hold-button');
 
-    holdButton.addEventListener('mousedown', () => {
+    // Function to start the command
+    function startCommand() {
       const command = document.getElementById('command').value;
       const speed = document.getElementById('speed').value;
       sendCommand(command, speed, -1); // Send command indefinitely
+    }
+
+    // Function to stop the command
+    function stopCommand() {
+      sendCommand('stop'); // Send stop command
+    }
+
+    // Mouse events
+    holdButton.addEventListener('mousedown', startCommand);
+    holdButton.addEventListener('mouseup', stopCommand);
+    holdButton.addEventListener('mouseleave', stopCommand);
+
+    // Touch events
+    holdButton.addEventListener('touchstart', (e) => {
+      e.preventDefault(); // Prevent default touch behavior
+      startCommand();
     });
 
-    holdButton.addEventListener('mouseup', () => {
-      sendCommand('stop'); // Send stop command when button is released
-    });
-
-    holdButton.addEventListener('mouseleave', () => {
-      sendCommand('stop'); // Send stop command if mouse leaves the button
-    });
+    holdButton.addEventListener('touchend', stopCommand);
+    holdButton.addEventListener('touchcancel', stopCommand); // Handle touch cancellation
   </script>
 </body>
 </html>
